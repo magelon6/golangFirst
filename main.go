@@ -8,11 +8,11 @@ import (
 )
 
 func main() {
-	l := log.New(os.Stdout, "product-api", log.LstdFlags)
+	l := log.New(os.Stdout, "product-api \n", log.LstdFlags)
 	hh := handlers.NewHello(l)
 
 	sm := http.NewServeMux()
 	sm.Handle("/", hh)
 
-	http.ListenAndServe(":8000", nil)
+	http.ListenAndServe(":9090", sm)
 }
