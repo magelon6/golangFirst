@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"log"
 	"microservicespetprod/data"
 	"net/http"
@@ -17,13 +16,21 @@ func NewProduct (l *log.Logger) *Product {
 }
 
 func (p *Product) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	p.l.Println("Request to / at:", time.Now().UTC())
-	lp := data.GetProducts()
-	
-	d, err := json.Marshal(lp)
-	if err != nil {
-		http.Error(rw, "Cannot marshal json", http.StatusInternalServerError)
+	if r.Method == http.MethodGet{
+		p.getProducts(rw, r)
+		return
 	}
 
-	rw.Write(d)
+	// catch 
+	rw.WriteHeader(http.StatusMethodNotAllowed)
+}
+
+func (p *Product) getProducts(rw http.ResponseWriter, r *http.Request) {
+	p.l.Println("Request time on / is: ", time.Now().UTC())
+	lp := data.GetProducts()
+	err := lp.ToJSON(rw)
+
+	if err != nil {
+		http.Error(rw, "Unable to marshall JSON", http.StatusInternalServerError)
+	}
 }
