@@ -2,6 +2,7 @@ package data
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"time"
 )
@@ -19,6 +20,11 @@ type User struct {
 
 type Users []*User
 
+func (u *User) FromJSON(r io.Reader) error {
+	e := json.NewDecoder(r)
+	return e.Decode(u)
+}
+
 func (u *Users) ToJSON(rw io.Writer) error {
 	e := json.NewEncoder(rw)
 	return e.Encode(u)
@@ -26,6 +32,12 @@ func (u *Users) ToJSON(rw io.Writer) error {
 
 func GetUsers() Users {
 	return usersList
+}
+
+func AddUser(u *User) {
+	u.ID = usersList[len(usersList) - 1].ID + 1
+	fmt.Println(u.ID)
+	usersList = append(usersList, u)
 }
 
 var usersList = []*User{
