@@ -2,7 +2,6 @@ package data
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"time"
 )
@@ -36,7 +35,6 @@ func GetUsers() Users {
 
 func AddUser(u *User) {
 	u.ID = usersList[len(usersList) - 1].ID + 1
-	fmt.Println(u.ID)
 	usersList = append(usersList, u)
 }
 
