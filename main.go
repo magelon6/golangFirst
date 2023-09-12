@@ -15,10 +15,11 @@ import (
 func main() {
 	l := log.New(os.Stdout, "product-api ", log.LstdFlags)
 	ph := handlers.NewProduct(l)
-	// uh := handlers.NewUser(l)
+	uh := handlers.NewUser(l)
 
 	sm := mux.NewRouter()
 
+	// Product handlers
 	getRouter := sm.Methods(http.MethodGet).Subrouter()
 	getRouter.HandleFunc("/", ph.GetProducts)
 
@@ -29,12 +30,19 @@ func main() {
 	postRouter := sm.Methods(http.MethodPost).Subrouter()
 	postRouter.HandleFunc("/", ph.AddProduct)
 	postRouter.Use(ph.MiddlewareValidateProduct)
-	// sm.Handle("/products", ph)
 
-	// standart lib
-	// sm := http.NewServeMux()
-	// sm.Handle("/", ph)
-	// sm.Handle("/users", uh)
+	// User handlers
+
+	getUserRouter := sm.Methods(http.MethodGet).Subrouter()
+	getUserRouter.HandleFunc("/users", uh.GetUsers)
+
+	postUserRouter := sm.Methods(http.MethodPost).Subrouter()
+	postUserRouter.HandleFunc("/users", uh.AddUser)
+	postUserRouter.Use(uh.ValidateMiddlewareUser)
+
+	putUserRouter := sm.Methods(http.MethodPost).Subrouter()
+	putUserRouter.HandleFunc("/users/{id:[0-9]+}", uh.UpdateUser)
+	putUserRouter.Use(uh.ValidateMiddlewareUser)
 
 	s := http.Server{
 		Addr: "localhost:9090",
