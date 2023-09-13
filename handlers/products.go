@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"microservicespetprod/data"
 	"net/http"
@@ -15,10 +16,9 @@ type Product struct {
 	l *log.Logger
 }
 
-func NewProduct (l *log.Logger) *Product {
+func NewProduct(l *log.Logger) *Product {
 	return &Product{l}
 }
-
 
 func (p *Product) GetProducts(rw http.ResponseWriter, r *http.Request) {
 	p.l.Println("Request time on / is: ", time.Now().UTC())
@@ -60,7 +60,7 @@ func (p Product) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type KeyProduct struct {}
+type KeyProduct struct{}
 
 func (p Product) MiddlewareValidateProduct(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
@@ -68,12 +68,24 @@ func (p Product) MiddlewareValidateProduct(next http.Handler) http.Handler {
 
 		err := prod.FromJSON(r.Body)
 		if err != nil {
-			http.Error(rw, "Unable to unmarshall json", http.StatusBadRequest)
+			p.l.Println("[ERROR] deserializing product", err)
+			http.Error(rw, "Error reading product", http.StatusBadRequest)
 			return
 		}
+		err = prod.Validate()
+		if err != nil {
+			p.l.Println("[ERROR] validating product", err)
+			http.Error(
+				rw,
+				fmt.Sprintf("Error validating product: %s", err),
+				http.StatusBadRequest,
+			)
+			return
+		}
+
 		ctx := context.WithValue(r.Context(), KeyProduct{}, prod)
 		req := r.WithContext(ctx)
 
-		next.ServeHTTP(rw, req)		
+		next.ServeHTTP(rw, req)
 	})
 }

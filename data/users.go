@@ -10,7 +10,7 @@ import (
 type User struct {
 	ID        int    `json:"id"`
 	UserName  string `json:"userName"`
-	Age       int    `json:"age"`
+	Age       uint8  `json:"age"`
 	Email     string `json:"email"`
 	Password  string `json:"-"`
 	SKU       string `json:"-"`
@@ -28,14 +28,14 @@ func (u *User) FromJSON(r io.Reader) error {
 func (u *Users) ToJSON(rw io.Writer) error {
 	e := json.NewEncoder(rw)
 	return e.Encode(u)
-} 
+}
 
 func GetUsers() Users {
 	return usersList
 }
 
 func AddUser(u *User) {
-	u.ID = usersList[len(usersList) - 1].ID + 1
+	u.ID = usersList[len(usersList)-1].ID + 1
 	usersList = append(usersList, u)
 }
 
