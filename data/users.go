@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"io"
 	"time"
+
+	"github.com/go-playground/validator/v10"
 )
 
 type User struct {
 	ID        int    `json:"id"`
-	UserName  string `json:"userName"`
-	Age       uint8  `json:"age"`
-	Email     string `json:"email"`
+	UserName  string `json:"userName" validate:"required"`
+	Age       uint8  `json:"age,string" validate:"required"`
+	Email     string `json:"email" validate:"required,email"`
 	Password  string `json:"-"`
 	SKU       string `json:"-"`
 	CreatedOn string `json:"-"`
@@ -23,6 +25,11 @@ type Users []*User
 func (u *User) FromJSON(r io.Reader) error {
 	e := json.NewDecoder(r)
 	return e.Decode(u)
+}
+
+func (u *User) ValidateUser() error {
+	validate := validator.New()
+	return validate.Struct(u)
 }
 
 func (u *Users) ToJSON(rw io.Writer) error {

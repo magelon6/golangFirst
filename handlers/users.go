@@ -65,7 +65,18 @@ func(u User) ValidateMiddlewareUser(next http.Handler) http.Handler {
 		err := user.FromJSON(r.Body)
 	
 		if err != nil {
+			u.l.Print("Marshalling err %e", err)
 			http.Error(rw, "Cannot unmarshall user", http.StatusBadRequest)
+			return
+		}
+
+		err = user.ValidateUser()
+		if err != nil {
+			http.Error(
+				rw,
+				"[ERROR] error validating user",
+				http.StatusBadRequest,
+			)
 			return
 		}
 
