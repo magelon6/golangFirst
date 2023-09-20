@@ -4,7 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"microservicespetprod/data"
+	"microservicespetprod/db"
+
 	"net/http"
 	"strconv"
 	"time"
@@ -20,9 +21,22 @@ func NewProduct(l *log.Logger) *Product {
 	return &Product{l}
 }
 
+// ShowProducts godoc
+//
+//	@Summary		Show a products list
+//	@Description	Get all products
+//	@Tags			products
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	db.Product
+//
+//	@failure		400	{string}	"string"	"error"
+//
+//	@Router			/ [get]
 func (p *Product) GetProducts(rw http.ResponseWriter, r *http.Request) {
+
 	p.l.Println("Request time on / is: ", time.Now().UTC())
-	lp := data.GetProducts()
+	lp := db.GetProducts()
 	err := lp.ToJSON(rw)
 
 	if err != nil {
@@ -33,8 +47,8 @@ func (p *Product) GetProducts(rw http.ResponseWriter, r *http.Request) {
 func (p *Product) AddProduct(rw http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle POST Products")
 
-	prod := r.Context().Value(KeyProduct{}).(data.Product)
-	data.AddProduct(&prod)
+	prod := r.Context().Value(KeyProduct{}).(db.Product)
+	db.AddProduct(&prod)
 }
 
 func (p Product) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
@@ -45,11 +59,11 @@ func (p Product) UpdateProducts(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	p.l.Println("Handle PUT Product", id)
-	prod := r.Context().Value(KeyProduct{}).(data.Product)
+	prod := r.Context().Value(KeyProduct{}).(db.Product)
 
-	err = data.UpdateProduct(id, &prod)
+	err = db.UpdateProduct(id, &prod)
 
-	if err == data.ErrProductNotFound {
+	if err == db.ErrProductNotFound {
 		http.Error(rw, "Product not found", http.StatusNotFound)
 		return
 	}
@@ -64,7 +78,7 @@ type KeyProduct struct{}
 
 func (p Product) MiddlewareValidateProduct(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		prod := data.Product{}
+		prod := db.Product{}
 
 		err := prod.FromJSON(r.Body)
 		if err != nil {

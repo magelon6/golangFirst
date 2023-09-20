@@ -1,0 +1,46 @@
+basePath: /v1
+definitions:
+  db.Product:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      price:
+        example: "0"
+        type: string
+      sku:
+        type: string
+    required:
+    - name
+    - sku
+    type: object
+host: localhost:9090
+info:
+  contact: {}
+  description: This is my 100 attempt to add swaggeer to this proj :)
+  title: Coffe Shop API
+  version: "1.0"
+paths:
+  /:
+    get:
+      consumes:
+      - application/json
+      description: Get all products
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/db.Product'
+        "400":
+          description: error
+          schema:
+            type: string
+      summary: Show a products list
+      tags:
+      - products
+swagger: "2.0"

@@ -3,7 +3,7 @@ package handlers
 import (
 	"context"
 	"log"
-	"microservicespetprod/data"
+	"microservicespetprod/db"
 	"net/http"
 	"strconv"
 
@@ -19,7 +19,7 @@ func NewUser (l *log.Logger) *User {
 }
 
 func(u *User) GetUsers(rw http.ResponseWriter, r *http.Request) {
-	lu := data.GetUsers()
+	lu := db.GetUsers()
 	err := lu.ToJSON(rw)
 
 	if err != nil {
@@ -28,13 +28,13 @@ func(u *User) GetUsers(rw http.ResponseWriter, r *http.Request) {
 }
 
 func(u *User) AddUser(rw http.ResponseWriter, r *http.Request) {
-	user := r.Context().Value(KeyUser{}).(data.User)
-	data.AddUser(&user)
+	user := r.Context().Value(KeyUser{}).(db.User)
+	db.AddUser(&user)
 }
 
 func(u User) UpdateUser(rw http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	user := r.Context().Value(KeyUser{}).(data.User)
+	user := r.Context().Value(KeyUser{}).(db.User)
 
 	uid, err := strconv.Atoi(vars["id"])
 	if err != nil {
@@ -42,9 +42,9 @@ func(u User) UpdateUser(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = data.UpdateUser(uid, &user)
+	err = db.UpdateUser(uid, &user)
 
-	if err == data.UserNotFoundError {
+	if err == db.UserNotFoundError {
 		http.Error(rw, "User not found", http.StatusNotFound)
 		return
 	}
@@ -60,7 +60,7 @@ type KeyUser struct {}
 
 func(u User) ValidateMiddlewareUser(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request){
-		user := data.User{}
+		user := db.User{}
 
 		err := user.FromJSON(r.Body)
 	

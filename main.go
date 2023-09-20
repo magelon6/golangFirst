@@ -10,8 +10,15 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/swaggo/http-swagger"
+	_ "microservicespetprod/docs"
 )
 
+//	@title			Coffe Shop API
+//	@version		1.0
+//	@description	This is my 100 attempt to add swaggeer to this proj :)
+//	@host			localhost:9090
+//	@BasePath		/v1
 func main() {
 	l := log.New(os.Stdout, "product-api ", log.LstdFlags)
 	ph := handlers.NewProduct(l)
@@ -20,6 +27,7 @@ func main() {
 	sm := mux.NewRouter()
 
 	// Product handlers
+
 	getRouter := sm.Methods(http.MethodGet).Subrouter()
 	getRouter.HandleFunc("/", ph.GetProducts)
 
@@ -43,6 +51,12 @@ func main() {
 	putUserRouter := sm.Methods(http.MethodPost).Subrouter()
 	putUserRouter.HandleFunc("/users/{id:[0-9]+}", uh.UpdateUser)
 	putUserRouter.Use(uh.ValidateMiddlewareUser)
+
+	// swagger router
+
+	sm.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
+        httpSwagger.URL("/swagger/doc.json"), 
+    ))
 
 	s := http.Server{
 		Addr: "localhost:9090",
