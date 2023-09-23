@@ -1,17 +1,19 @@
-package data
+package db
 
 import (
 	"encoding/json"
 	"fmt"
 	"io"
 	"time"
+
+	"github.com/go-playground/validator/v10"
 )
 
 type User struct {
 	ID        int    `json:"id"`
-	UserName  string `json:"userName"`
-	Age       int    `json:"age"`
-	Email     string `json:"email"`
+	UserName  string `json:"userName" validate:"required"`
+	Age       uint8  `json:"age,string" validate:"required"`
+	Email     string `json:"email" validate:"required,email"`
 	Password  string `json:"-"`
 	SKU       string `json:"-"`
 	CreatedOn string `json:"-"`
@@ -25,19 +27,45 @@ func (u *User) FromJSON(r io.Reader) error {
 	return e.Decode(u)
 }
 
+func (u *User) ValidateUser() error {
+	validate := validator.New()
+	return validate.Struct(u)
+}
+
 func (u *Users) ToJSON(rw io.Writer) error {
 	e := json.NewEncoder(rw)
 	return e.Encode(u)
-} 
+}
 
 func GetUsers() Users {
 	return usersList
 }
 
 func AddUser(u *User) {
-	u.ID = usersList[len(usersList) - 1].ID + 1
-	fmt.Println(u.ID)
+	u.ID = usersList[len(usersList)-1].ID + 1
 	usersList = append(usersList, u)
+}
+
+func UpdateUser(id int, u *User) error {
+	_, pos, err := findUser(id)
+	if err != nil {
+		return err
+	}
+
+	u.ID = id
+	usersList[pos] = u
+	return nil
+}
+
+var UserNotFoundError = fmt.Errorf("Cannot find such user")
+
+func findUser(id int) (*User, int, error) {
+	for i, u := range usersList {
+		if u.ID == id {
+			return u, i, nil
+		}
+	}
+	return nil, -1, UserNotFoundError
 }
 
 var usersList = []*User{
